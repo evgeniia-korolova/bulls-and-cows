@@ -1,3 +1,4 @@
+import { generateSecret } from '../generateSecret';
 import { PlayingState, SetupState } from './types';
 
 interface StartGameOptions {
@@ -5,7 +6,16 @@ interface StartGameOptions {
   readonly now?: () => number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function startGame(state: SetupState, options?: StartGameOptions): PlayingState {
-  throw new Error('Not implemented');
+  const secret = generateSecret(state.settings.length, state.settings.base, options?.random);
+  const startedAt = options?.now?.() ?? Date.now();
+
+  return {
+    status: 'playing',
+    secret,
+    history: [],
+    currentGuess: '',
+    startedAt,
+    settings: state.settings,
+  };
 }
