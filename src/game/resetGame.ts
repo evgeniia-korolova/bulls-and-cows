@@ -4,7 +4,9 @@ interface ResetGameOptions {
   readonly state: WonState | LostState;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function resetGame(options: ResetGameOptions): SetupState {
-  throw new Error('Not implemented');
+  return {
+    status: 'setup',
+    settings: options.state.result.settings,
+  };
 }
