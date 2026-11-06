@@ -5,9 +5,18 @@ interface AbandonGameOptions {
   readonly now?: () => number;
 }
 
-export function abandonGame(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  options: AbandonGameOptions,
-): LostState {
-  throw new Error('Not implemented');
+export function abandonGame(options: AbandonGameOptions): LostState {
+  const { state } = options;
+  const completedAt = options.now?.() ?? Date.now();
+
+  return {
+    status: 'lost',
+    result: {
+      settings: state.settings,
+      attempts: state.history,
+      duration: completedAt - state.startedAt,
+      completedAt,
+      outcome: 'lost',
+    },
+  };
 }
