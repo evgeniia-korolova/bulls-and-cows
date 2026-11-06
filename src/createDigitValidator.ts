@@ -1,6 +1,5 @@
-export function createDigitValidator(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  base: number,
-): (char: string) => boolean {
-  return () => false;
+export function createDigitValidator(base: number): (char: string) => boolean {
+  const digitsArr = Array.from({ length: base }, (_, index) => index.toString(base));
+
+  return (char) => digitsArr.includes(char.toLowerCase());
 }
