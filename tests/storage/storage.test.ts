@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { STORAGE_KEY } from '../../src/storage/constants';
-import { loadGameData } from '../../src/storage/storage';
+import { loadGameData, saveGameData } from '../../src/storage/storage';
 import type { StorageAdapter, StoredGameData } from '../../src/storage/types';
 
 describe('loadGameData', () => {
@@ -56,5 +56,46 @@ describe('loadGameData', () => {
     loadGameData({ storage });
 
     expect(requestedKey).toBe(STORAGE_KEY);
+  });
+});
+
+describe('saveGameData', () => {
+  const mockData: StoredGameData = {
+    version: 1,
+    settings: {
+      length: 4,
+      base: 10,
+    },
+    results: [],
+  };
+
+  it('should save serialized game data', () => {
+    let savedValue: string | null = null;
+
+    const storage: StorageAdapter = {
+      getItem: () => null,
+      setItem: (_key, value) => {
+        savedValue = value;
+      },
+    };
+
+    saveGameData({ data: mockData, storage });
+
+    expect(savedValue).toBe(JSON.stringify(mockData));
+  });
+
+  it('should use the correct storage key', () => {
+    let savedKey = '';
+
+    const storage: StorageAdapter = {
+      getItem: () => null,
+      setItem: (key) => {
+        savedKey = key;
+      },
+    };
+
+    saveGameData({ data: mockData, storage });
+
+    expect(savedKey).toBe(STORAGE_KEY);
   });
 });

@@ -7,6 +7,11 @@ interface LoadGameDataOptions {
   readonly storage?: StorageAdapter;
 }
 
+interface SaveGameDataOptions {
+  readonly data: StoredGameData;
+  readonly storage?: StorageAdapter;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -99,4 +104,9 @@ export function loadGameData(options?: LoadGameDataOptions): StoredGameData | nu
   } catch {
     return null;
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function saveGameData(options: SaveGameDataOptions): void {
+  throw new Error('Not implemented');
 }
