@@ -1,5 +1,6 @@
 import { countPossibleSecrets } from '../countPossibleSecrets';
 import { GAME_BASES, GameBase } from '../game/constants';
+import { resetGame } from '../game/resetGame';
 import { startGame } from '../game/startGame';
 import { submitGuess } from '../game/submitGuess';
 import {
@@ -153,10 +154,10 @@ export function mountApp(root: HTMLDivElement): void {
     guessInput.autocomplete = 'off';
     guessInput.maxLength = state.settings.length;
     guessInput.placeholder = 'Enter your guess';
-    guessInput.setAttribute('aria-describedby', guessError.id);
 
     guessError.id = 'guess-error';
     guessError.setAttribute('aria-live', 'polite');
+    guessInput.setAttribute('aria-describedby', guessError.id);
 
     const submitButton = createElement('button', 'guess-form__submit');
     submitButton.type = 'submit';
@@ -217,7 +218,7 @@ export function mountApp(root: HTMLDivElement): void {
       });
 
       if (gameState.status === 'won') {
-        // TODO Победный экран.
+        renderWonState(gameState);
         return;
       }
 
@@ -225,6 +226,64 @@ export function mountApp(root: HTMLDivElement): void {
     });
 
     gameSection.replaceChildren(gameTitle, settingsInfo, gameMessage, guessForm, historySection);
+  }
+
+  function renderWonState(state: WonState): void {
+    const result = state.result;
+    const secret = result.attempts.at(-1)?.guess;
+
+    const gameTitle = createElement('h2', 'game__title');
+    gameTitle.textContent = 'You got it! 🎉';
+
+    const secretMessage = createElement('p', 'game__message');
+    secretMessage.textContent = `The secret number was ${secret}.`;
+
+    const attemptsInfo = createElement('p', 'game__result-info');
+    attemptsInfo.textContent = `Attempts: ${result.attempts.length}`;
+
+    const durationInfo = createElement('p', 'game__result-info');
+    durationInfo.textContent = `Time: ${formatDuration(result.duration)}`;
+
+    const historySection = renderHistory(result.attempts);
+
+    const newGameButton = createElement('button', 'game__new-game');
+    newGameButton.type = 'button';
+    newGameButton.textContent = 'Start New Game';
+
+    newGameButton.addEventListener('click', () => {
+      const setupState = resetGame({ state });
+
+      selectedLength = setupState.settings.length;
+      selectedBase = setupState.settings.base;
+
+      const lengthInputs =
+        lengthFieldset.querySelectorAll<HTMLInputElement>('input[name="length"]');
+
+      for (const input of lengthInputs) {
+        input.checked = Number(input.value) === selectedLength;
+      }
+
+      const baseInputs = baseFieldset.querySelectorAll<HTMLInputElement>('input[name="base"]');
+
+      for (const input of baseInputs) {
+        input.checked = Number(input.value) === selectedBase;
+      }
+
+      gameState = null;
+
+      gameSection.replaceChildren(setupTitle, setupStatus, setupForm);
+
+      updateSetupForm();
+    });
+
+    gameSection.replaceChildren(
+      gameTitle,
+      secretMessage,
+      attemptsInfo,
+      durationInfo,
+      historySection,
+      newGameButton,
+    );
   }
 
   function renderHistory(history: readonly GameAttempt[]): HTMLElement {
@@ -272,6 +331,23 @@ export function mountApp(root: HTMLDivElement): void {
     historySection.append(historyTitle, historyTable);
 
     return historySection;
+  }
+
+  function formatDuration(duration: number): string {
+    const totalSeconds = Math.floor(duration / 1000);
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedSeconds = String(seconds).padStart(2, '0');
+
+    if (hours > 0) {
+      return `${String(hours).padStart(2, '0')}:${formattedMinutes}:${formattedSeconds}`;
+    }
+
+    return `${formattedMinutes}:${formattedSeconds}`;
   }
 
   for (const input of lengthFieldset.querySelectorAll<HTMLInputElement>('input[name="length"]')) {
