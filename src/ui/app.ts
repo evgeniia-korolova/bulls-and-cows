@@ -1,11 +1,14 @@
 import { countPossibleSecrets } from '../countPossibleSecrets';
 import { GAME_BASES, GameBase } from '../game/constants';
+import { startGame } from '../game/startGame';
+import { PlayingState, SetupState } from '../game/types';
 
 export function mountApp(root: HTMLDivElement): void {
   const main = createElement('main', 'app');
 
   let selectedLength: number | null = null;
   let selectedBase: GameBase | null = null;
+  let gameState: PlayingState | null = null;
 
   const header = createElement('header', 'app__header');
   const title = createElement('h1', 'app__title');
@@ -117,6 +120,40 @@ export function mountApp(root: HTMLDivElement): void {
     combinationsInfo.textContent = `Possible combinations: ${countPossibleSecrets(selectedLength, selectedBase).toLocaleString()}`;
   }
 
+  function renderPlayingState(state: PlayingState): void {
+    const gameTitle = createElement('h2', 'game__title');
+    gameTitle.textContent = 'Game';
+
+    const settingsInfo = createElement('p', 'game__settings');
+    settingsInfo.textContent = `${state.settings.length} digits · Base ${state.settings.base}`;
+
+    const gameMessage = createElement('p', 'game__message');
+    gameMessage.textContent = 'Your secret number is ready. Make your first guess.';
+
+    const guessForm = createElement('form', 'guess-form');
+
+    const guessLabel = createElement('label', 'guess-form__label');
+    guessLabel.textContent = 'Your guess';
+
+    const guessInput = createElement('input', 'guess-form__input');
+    guessInput.type = 'text';
+    guessInput.inputMode = 'text';
+    guessInput.autocomplete = 'off';
+    guessInput.maxLength = state.settings.length;
+    guessInput.placeholder = 'Enter your guess';
+
+    const submitButton = createElement('button', 'guess-form__submit');
+    submitButton.type = 'submit';
+    submitButton.textContent = 'Submit Guess';
+
+    guessLabel.htmlFor = 'guess-input';
+    guessInput.id = 'guess-input';
+
+    guessForm.append(guessLabel, guessInput, submitButton);
+
+    gameSection.replaceChildren(gameTitle, settingsInfo, gameMessage, guessForm);
+  }
+
   for (const input of lengthFieldset.querySelectorAll<HTMLInputElement>('input[name="length"]')) {
     input.addEventListener('change', () => {
       selectedLength = Number(input.value);
@@ -134,6 +171,25 @@ export function mountApp(root: HTMLDivElement): void {
       }
     });
   }
+
+  setupForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    if (selectedLength === null || selectedBase === null) {
+      return;
+    }
+
+    const setupState: SetupState = {
+      status: 'setup',
+      settings: {
+        length: selectedLength,
+        base: selectedBase,
+      },
+    };
+
+    gameState = startGame(setupState);
+    renderPlayingState(gameState);
+  });
 
   setupForm.append(lengthFieldset, baseFieldset, combinationsInfo, startButton);
 

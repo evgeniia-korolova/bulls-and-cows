@@ -46,3 +46,5 @@ export interface LostState {
 }
 
 export type GameState = SetupState | PlayingState | WonState | LostState;
+
+export type GuessValidationError = 'invalid-length' | 'invalid-digit' | 'duplicate-digits';
