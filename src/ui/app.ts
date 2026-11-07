@@ -1,5 +1,11 @@
+import { countPossibleSecrets } from '../countPossibleSecrets';
+import { GAME_BASES, GameBase } from '../game/constants';
+
 export function mountApp(root: HTMLDivElement): void {
   const main = createElement('main', 'app');
+
+  let selectedLength: number | null = null;
+  let selectedBase: GameBase | null = null;
 
   const header = createElement('header', 'app__header');
   const title = createElement('h1', 'app__title');
@@ -72,6 +78,62 @@ export function mountApp(root: HTMLDivElement): void {
   startButton.type = 'submit';
   startButton.textContent = 'Start Game';
   startButton.disabled = true;
+
+  function updateSetupForm(): void {
+    const lengthInputs = lengthFieldset.querySelectorAll<HTMLInputElement>('input[name="length"]');
+
+    for (const input of lengthInputs) {
+      const length = Number(input.value);
+      input.disabled = selectedBase !== null && length > selectedBase;
+
+      if (input.disabled && input.checked) {
+        input.checked = false;
+        selectedLength = null;
+      }
+    }
+
+    const isValid = selectedLength !== null && selectedBase !== null;
+
+    startButton.disabled = !isValid;
+
+    if (selectedLength === null && selectedBase === null) {
+      setupStatus.textContent = 'Choose your settings';
+      combinationsInfo.textContent = 'Select your settings to see possible combinations';
+      return;
+    }
+
+    if (selectedLength === null) {
+      setupStatus.textContent = 'Choose number of digits';
+      return;
+    }
+
+    if (selectedBase === null) {
+      setupStatus.textContent = 'Choose number base';
+      return;
+    }
+
+    setupStatus.textContent = 'Ready to play!';
+
+    combinationsInfo.textContent = `Possible combinations: ${countPossibleSecrets(selectedLength, selectedBase).toLocaleString()}`;
+  }
+
+  for (const input of lengthFieldset.querySelectorAll<HTMLInputElement>('input[name="length"]')) {
+    input.addEventListener('change', () => {
+      selectedLength = Number(input.value);
+      updateSetupForm();
+    });
+  }
+
+  for (const input of baseFieldset.querySelectorAll<HTMLInputElement>('input[name="base"]')) {
+    input.addEventListener('change', () => {
+      const base = Object.values(GAME_BASES).find((value) => value === Number(input.value));
+
+      if (base !== undefined) {
+        selectedBase = base;
+        updateSetupForm();
+      }
+    });
+  }
 
   setupForm.append(lengthFieldset, baseFieldset, combinationsInfo, startButton);
 
