@@ -106,7 +106,16 @@ export function loadGameData(options?: LoadGameDataOptions): StoredGameData | nu
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function saveGameData(options: SaveGameDataOptions): void {
-  throw new Error('Not implemented');
+  try {
+    const storage = options.storage ?? (typeof localStorage === 'undefined' ? null : localStorage);
+
+    if (!storage) {
+      return;
+    }
+
+    storage.setItem(STORAGE_KEY, JSON.stringify(options.data));
+  } catch {
+    return;
+  }
 }
