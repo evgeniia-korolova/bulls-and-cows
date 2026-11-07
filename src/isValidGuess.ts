@@ -2,23 +2,31 @@ import { createDigitValidator } from './createDigitValidator';
 import { GuessValidationError } from './game/types';
 
 export function isValidGuess(guess: string, length: number, base: number): boolean {
-  if (guess.length !== length) return false;
-  const isValidDigit = createDigitValidator(base);
-  if (![...guess].every(isValidDigit)) return false;
-
-  const guessSet = new Set([...guess].map((char) => char.toLowerCase()));
-  if (guessSet.size !== length) return false;
-
-  return true;
+  return getGuessValidationError(guess, length, base) === null;
 }
 
 export function getGuessValidationError(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   guess: string,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   length: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   base: number,
 ): GuessValidationError | null {
-  throw new Error('Not implemented');
+  if (guess.length !== length) {
+    return 'invalid-length';
+  }
+
+  const isValidDigit = createDigitValidator(base);
+
+  if (![...guess].every(isValidDigit)) {
+    return 'invalid-digit';
+  }
+
+  const guessSet = new Set([...guess].map((char) => char.toLowerCase()));
+
+  if (guessSet.size !== length) {
+    return 'duplicate-digits';
+  }
+
+  return null;
 }

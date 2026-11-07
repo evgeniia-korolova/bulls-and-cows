@@ -1,14 +1,22 @@
 import { countPossibleSecrets } from '../countPossibleSecrets';
 import { GAME_BASES, GameBase } from '../game/constants';
 import { startGame } from '../game/startGame';
-import { PlayingState, SetupState } from '../game/types';
+import { submitGuess } from '../game/submitGuess';
+import {
+  GameAttempt,
+  GuessValidationError,
+  PlayingState,
+  SetupState,
+  WonState,
+} from '../game/types';
+import { getGuessValidationError, isValidGuess } from '../isValidGuess';
 
 export function mountApp(root: HTMLDivElement): void {
   const main = createElement('main', 'app');
 
   let selectedLength: number | null = null;
   let selectedBase: GameBase | null = null;
-  let gameState: PlayingState | null = null;
+  let gameState: PlayingState | WonState | null = null;
 
   const header = createElement('header', 'app__header');
   const title = createElement('h1', 'app__title');
@@ -128,19 +136,27 @@ export function mountApp(root: HTMLDivElement): void {
     settingsInfo.textContent = `${state.settings.length} digits · Base ${state.settings.base}`;
 
     const gameMessage = createElement('p', 'game__message');
-    gameMessage.textContent = 'Your secret number is ready. Make your first guess.';
+    gameMessage.textContent =
+      state.history.length === 0 ? 'Make your first guess.' : 'Not quite! Try another guess.';
 
     const guessForm = createElement('form', 'guess-form');
+
+    const historySection = renderHistory(state.history);
 
     const guessLabel = createElement('label', 'guess-form__label');
     guessLabel.textContent = 'Your guess';
 
     const guessInput = createElement('input', 'guess-form__input');
+    const guessError = createElement('p', 'guess-form__error');
     guessInput.type = 'text';
     guessInput.inputMode = 'text';
     guessInput.autocomplete = 'off';
     guessInput.maxLength = state.settings.length;
     guessInput.placeholder = 'Enter your guess';
+    guessInput.setAttribute('aria-describedby', guessError.id);
+
+    guessError.id = 'guess-error';
+    guessError.setAttribute('aria-live', 'polite');
 
     const submitButton = createElement('button', 'guess-form__submit');
     submitButton.type = 'submit';
@@ -149,9 +165,113 @@ export function mountApp(root: HTMLDivElement): void {
     guessLabel.htmlFor = 'guess-input';
     guessInput.id = 'guess-input';
 
-    guessForm.append(guessLabel, guessInput, submitButton);
+    guessForm.append(guessLabel, guessInput, submitButton, guessError);
 
-    gameSection.replaceChildren(gameTitle, settingsInfo, gameMessage, guessForm);
+    submitButton.disabled = true;
+
+    guessInput.addEventListener('input', () => {
+      const guess = guessInput.value;
+
+      if (guess.length === 0) {
+        guessError.textContent = '';
+        guessInput.setAttribute('aria-invalid', 'false');
+        submitButton.disabled = true;
+        return;
+      }
+
+      const validationError = getGuessValidationError(
+        guess,
+        state.settings.length,
+        state.settings.base,
+      );
+
+      const errorMessages: Record<GuessValidationError, string> = {
+        'invalid-length': `Enter exactly ${state.settings.length} characters.`,
+        'invalid-digit': `Use only digits allowed in base ${state.settings.base}.`,
+        'duplicate-digits': 'Each digit must be unique.',
+      };
+
+      guessError.textContent = validationError === null ? '' : errorMessages[validationError];
+
+      guessInput.setAttribute('aria-invalid', String(validationError !== null));
+
+      submitButton.disabled = validationError !== null;
+    });
+
+    guessForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      if (gameState === null || gameState.status !== 'playing') {
+        return;
+      }
+
+      const guess = guessInput.value;
+
+      if (!isValidGuess(guess, gameState.settings.length, gameState.settings.base)) {
+        return;
+      }
+
+      gameState = submitGuess({
+        state: gameState,
+        guess,
+      });
+
+      if (gameState.status === 'won') {
+        // TODO Победный экран.
+        return;
+      }
+
+      renderPlayingState(gameState);
+    });
+
+    gameSection.replaceChildren(gameTitle, settingsInfo, gameMessage, guessForm, historySection);
+  }
+
+  function renderHistory(history: readonly GameAttempt[]): HTMLElement {
+    const historySection = createElement('section', 'history');
+
+    const historyTitle = createElement('h3', 'history__title');
+    const historyTable = createElement('table', 'history__table');
+
+    const tableHead = createElement('thead', 'history__head');
+    const headerRow = createElement('tr');
+
+    const headers = ['Guess', 'Bulls', 'Cows'];
+
+    for (const header of headers) {
+      const cell = createElement('th');
+      cell.scope = 'col';
+      cell.textContent = header;
+      headerRow.append(cell);
+    }
+
+    tableHead.append(headerRow);
+
+    const tableBody = createElement('tbody', 'history__body');
+
+    for (const attempt of [...history].reverse()) {
+      const row = createElement('tr', 'history__row');
+
+      const guessCell = createElement('th');
+      guessCell.scope = 'row';
+      guessCell.textContent = attempt.guess;
+
+      const bullsCell = createElement('td');
+      bullsCell.textContent = String(attempt.bulls);
+
+      const cowsCell = createElement('td');
+      cowsCell.textContent = String(attempt.cows);
+
+      row.append(guessCell, bullsCell, cowsCell);
+      tableBody.append(row);
+    }
+
+    historyTable.append(tableHead, tableBody);
+    historyTitle.textContent = 'Guess History';
+
+    historySection.append(historyTitle, historyTable);
+
+    return historySection;
   }
 
   for (const input of lengthFieldset.querySelectorAll<HTMLInputElement>('input[name="length"]')) {
