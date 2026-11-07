@@ -1,0 +1,165 @@
+:root {
+  color-scheme: dark;
+  font-family: Arial, sans-serif;
+  background: #080d20;
+  color: #f1f3ff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.app {
+  width: min(100% - 32px, 1100px);
+  min-height: 100vh;
+  margin-inline: auto;
+  padding-block: 48px;
+}
+
+.app__header {
+  margin-bottom: 48px;
+  text-align: center;
+}
+
+.app__title {
+  margin: 0;
+  color: #f1f3ff;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: 0.04em;
+}
+
+.app__subtitle {
+  margin: 12px 0 0;
+  color: #9ba9d8;
+  font-size: 1rem;
+}
+
+.app__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+  gap: 24px;
+}
+
+.game,
+.leaderboard {
+  min-height: 400px;
+  padding: 24px;
+  border: 1px solid #28345f;
+  border-radius: 16px;
+  background: #141e40;
+}
+
+@media (max-width: 1024px) {
+  .app {
+    padding-block: 32px;
+  }
+
+  .app__header {
+    margin-bottom: 32px;
+  }
+
+  .app__content {
+    grid-template-columns: 1fr;
+  }
+
+  .game,
+  .leaderboard {
+    min-height: 300px;
+    padding: 20px;
+  }
+}
+
+.game__title {
+  margin: 0 0 16px;
+  color: #f1f3ff;
+  font-size: 1.5rem;
+}
+
+.game__status {
+  margin: 0 0 24px;
+  color: #55d6e8;
+  font-weight: 500;
+}
+
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.setup-form__group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #354474;
+  border-radius: 10px;
+}
+
+.setup-form__legend {
+  padding-inline: 8px;
+  color: #c5ceef;
+  font-weight: 600;
+}
+
+.setup-form__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #f1f3ff;
+  cursor: pointer;
+}
+
+.setup-form__option input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #6478e8;
+  cursor: pointer;
+}
+
+.setup-form__info {
+  margin: 0;
+  color: #9ba9d8;
+  font-size: 0.9rem;
+}
+
+.setup-form__submit {
+  min-height: 48px;
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 8px;
+  background: #6478e8;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.setup-form__submit:disabled {
+  background: #354064;
+  color: #8c96b8;
+  cursor: not-allowed;
+}
+
+.setup-form__submit:not(:disabled):hover {
+  background: #788af2;
+}
+
+.setup-form__submit:focus-visible,
+.setup-form__option input:focus-visible {
+  outline: 2px solid #55d6e8;
+  outline-offset: 3px;
+}
