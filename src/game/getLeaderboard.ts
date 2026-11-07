@@ -1,6 +1,10 @@
 import type { GameResult } from './types';
 
-//eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function getLeaderboard(results: readonly GameResult[]): readonly GameResult[] {
-  throw new Error('Not implemented');
+  return results
+    .filter((result) => result.outcome === 'won')
+    .sort(
+      (first, second) =>
+        first.attempts.length - second.attempts.length || first.duration - second.duration,
+    );
 }
