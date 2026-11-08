@@ -182,6 +182,7 @@ export function mountApp(root: HTMLDivElement): void {
     const submitButton = createElement('button', 'guess-form__submit');
     submitButton.type = 'submit';
     submitButton.textContent = 'Submit Guess';
+    submitButton.disabled = true;
 
     const giveUpButton = createElement('button', 'guess-form__give-up');
     giveUpButton.type = 'button';
@@ -194,8 +195,6 @@ export function mountApp(root: HTMLDivElement): void {
     guessActions.append(submitButton, giveUpButton);
 
     guessForm.append(guessLabel, guessInput, guessActions, guessError);
-
-    submitButton.disabled = true;
 
     guessInput.addEventListener('input', () => {
       const guess = guessInput.value;
@@ -337,7 +336,7 @@ export function mountApp(root: HTMLDivElement): void {
     const result = state.result;
 
     const gameTitle = createElement('h2', 'game__title');
-    gameTitle.textContent = 'Game OveYou gave up!';
+    gameTitle.textContent = 'Game Over. You gave up!';
 
     const secretMessage = createElement('p', 'game__message');
     secretMessage.textContent = `The secret number was ${secret}.`;
@@ -394,6 +393,8 @@ export function mountApp(root: HTMLDivElement): void {
     const historySection = createElement('section', 'history');
 
     const historyTitle = createElement('h3', 'history__title');
+    const historyContent = createElement('div', 'history__content');
+
     const historyTable = createElement('table', 'history__table');
 
     const tableHead = createElement('thead', 'history__head');
@@ -432,7 +433,8 @@ export function mountApp(root: HTMLDivElement): void {
     historyTable.append(tableHead, tableBody);
     historyTitle.textContent = 'Guess History';
 
-    historySection.append(historyTitle, historyTable);
+    historyContent.append(historyTable);
+    historySection.append(historyTitle, historyContent);
 
     return historySection;
   }
