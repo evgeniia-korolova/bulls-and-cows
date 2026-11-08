@@ -74,4 +74,23 @@ describe('getLeaderboard', () => {
   it('should return an empty array when there are no results', () => {
     expect(getLeaderboard([])).toEqual([]);
   });
+
+  it('should return only the top 5 results', () => {
+    const additionalResults = Array.from({ length: 7 }, (_, index): GameResult => ({
+      settings: { length: 4, base: 10 },
+      attempts: Array.from({ length: index + 1 }, () => ({
+        guess: '1234',
+        bulls: 4,
+        cows: 0,
+      })),
+      duration: (index + 1) * 1000,
+      completedAt: index,
+      outcome: 'won',
+    }));
+
+    const leaderboard = getLeaderboard(additionalResults);
+
+    expect(leaderboard).toHaveLength(5);
+    expect(leaderboard.map((result) => result.attempts.length)).toEqual([1, 2, 3, 4, 5]);
+  });
 });
