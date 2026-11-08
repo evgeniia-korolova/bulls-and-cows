@@ -29,6 +29,7 @@ export function mountApp(root: HTMLDivElement): void {
 
   function saveGameResult(result: GameResult): void {
     gameResults = [...gameResults, result];
+    const leaders = getLeaderboard(gameResults);
 
     const data: StoredGameData = {
       version: 1,
@@ -36,6 +37,7 @@ export function mountApp(root: HTMLDivElement): void {
       results: gameResults,
     };
 
+    gameResults = leaders;
     saveGameData({ data });
   }
 

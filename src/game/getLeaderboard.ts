@@ -1,3 +1,4 @@
+import { LEADERBOARD_LIMIT } from '../storage/constants';
 import type { GameResult } from './types';
 
 export function getLeaderboard(results: readonly GameResult[]): readonly GameResult[] {
@@ -6,5 +7,6 @@ export function getLeaderboard(results: readonly GameResult[]): readonly GameRes
     .sort(
       (first, second) =>
         first.attempts.length - second.attempts.length || first.duration - second.duration,
-    );
+    )
+    .slice(0, LEADERBOARD_LIMIT);
 }
