@@ -1,11 +1,13 @@
 import { countPossibleSecrets } from '../countPossibleSecrets';
 import { abandonGame } from '../game/abandonGame';
 import { GAME_BASES, GameBase } from '../game/constants';
+import { getLeaderboard } from '../game/getLeaderboard';
 import { resetGame } from '../game/resetGame';
 import { startGame } from '../game/startGame';
 import { submitGuess } from '../game/submitGuess';
 import {
   GameAttempt,
+  GameResult,
   GuessValidationError,
   LostState,
   PlayingState,
@@ -13,6 +15,8 @@ import {
   WonState,
 } from '../game/types';
 import { getGuessValidationError, isValidGuess } from '../isValidGuess';
+import { loadGameData, saveGameData } from '../storage/storage';
+import { StoredGameData } from '../storage/types';
 
 export function mountApp(root: HTMLDivElement): void {
   const main = createElement('main', 'app');
@@ -20,6 +24,20 @@ export function mountApp(root: HTMLDivElement): void {
   let selectedLength: number | null = null;
   let selectedBase: GameBase | null = null;
   let gameState: PlayingState | WonState | LostState | null = null;
+
+  let gameResults: readonly GameResult[] = loadGameData()?.results ?? [];
+
+  function saveGameResult(result: GameResult): void {
+    gameResults = [...gameResults, result];
+
+    const data: StoredGameData = {
+      version: 1,
+      settings: result.settings,
+      results: gameResults,
+    };
+
+    saveGameData({ data });
+  }
 
   const header = createElement('header', 'app__header');
   const title = createElement('h1', 'app__title');
@@ -227,6 +245,8 @@ export function mountApp(root: HTMLDivElement): void {
       });
 
       if (gameState.status === 'won') {
+        saveGameResult(gameState.result);
+        renderLeaderboard();
         renderWonState(gameState);
         return;
       }
@@ -247,6 +267,8 @@ export function mountApp(root: HTMLDivElement): void {
 
       gameState = abandonGame({ state: gameState });
 
+      saveGameResult(gameState.result);
+      renderLeaderboard();
       renderLostState(gameState, secret);
     });
 
@@ -415,6 +437,57 @@ export function mountApp(root: HTMLDivElement): void {
     return historySection;
   }
 
+  function renderLeaderboard(): void {
+    const leaders = getLeaderboard(gameResults);
+
+    if (leaders.length === 0) {
+      leaderboardSection.replaceChildren(leaderboardTitle, emptyMessage);
+      return;
+    }
+
+    const table = createElement('table', 'leaderboard__table');
+
+    const tableHead = createElement('thead');
+    const headerRow = createElement('tr');
+
+    for (const heading of ['Rank', 'Digits', 'Base', 'Attempts', 'Time']) {
+      const cell = createElement('th');
+      cell.scope = 'col';
+      cell.textContent = heading;
+
+      headerRow.append(cell);
+    }
+
+    tableHead.append(headerRow);
+
+    const tableBody = createElement('tbody');
+    leaders.forEach((result, index) => {
+      const row = createElement('tr', 'leaderboard__row');
+
+      const rankCell = createElement('th');
+      rankCell.scope = 'row';
+      rankCell.textContent = String(index + 1);
+
+      const digitsCell = createElement('td');
+      digitsCell.textContent = String(result.settings.length);
+
+      const baseCell = createElement('td');
+      baseCell.textContent = String(result.settings.base);
+
+      const attemptsCell = createElement('td');
+      attemptsCell.textContent = String(result.attempts.length);
+
+      const timeCell = createElement('td');
+      timeCell.textContent = formatDuration(result.duration);
+
+      row.append(rankCell, digitsCell, baseCell, attemptsCell, timeCell);
+      tableBody.append(row);
+    });
+
+    table.append(tableHead, tableBody);
+    leaderboardSection.replaceChildren(leaderboardTitle, table);
+  }
+
   function formatDuration(duration: number): string {
     const totalSeconds = Math.floor(duration / 1000);
 
@@ -475,6 +548,16 @@ export function mountApp(root: HTMLDivElement): void {
 
   const leaderboardSection = createElement('section', 'leaderboard');
   leaderboardSection.setAttribute('aria-label', 'Leaderboard');
+
+  const leaderboardTitle = createElement('h2', 'leaderboard__title');
+  leaderboardTitle.textContent = 'Leaderboard';
+
+  const emptyMessage = createElement('p', 'leaderboard__empty');
+  emptyMessage.textContent = 'No leaders yet. Be the first to win!';
+
+  leaderboardSection.append(leaderboardTitle, emptyMessage);
+
+  renderLeaderboard();
 
   content.append(gameSection, leaderboardSection);
   main.append(header, content);
