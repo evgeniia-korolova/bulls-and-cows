@@ -163,3 +163,14 @@ input {
   outline: 2px solid #55d6e8;
   outline-offset: 3px;
 }
+
+.guess-form {
+  display: grid;
+  gap: 12px;
+}
+
+.guess-form__actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}

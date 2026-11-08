@@ -1,4 +1,5 @@
 import { countPossibleSecrets } from '../countPossibleSecrets';
+import { abandonGame } from '../game/abandonGame';
 import { GAME_BASES, GameBase } from '../game/constants';
 import { resetGame } from '../game/resetGame';
 import { startGame } from '../game/startGame';
@@ -6,6 +7,7 @@ import { submitGuess } from '../game/submitGuess';
 import {
   GameAttempt,
   GuessValidationError,
+  LostState,
   PlayingState,
   SetupState,
   WonState,
@@ -17,7 +19,7 @@ export function mountApp(root: HTMLDivElement): void {
 
   let selectedLength: number | null = null;
   let selectedBase: GameBase | null = null;
-  let gameState: PlayingState | WonState | null = null;
+  let gameState: PlayingState | WonState | LostState | null = null;
 
   const header = createElement('header', 'app__header');
   const title = createElement('h1', 'app__title');
@@ -163,10 +165,17 @@ export function mountApp(root: HTMLDivElement): void {
     submitButton.type = 'submit';
     submitButton.textContent = 'Submit Guess';
 
+    const giveUpButton = createElement('button', 'guess-form__give-up');
+    giveUpButton.type = 'button';
+    giveUpButton.textContent = 'Give Up';
+
     guessLabel.htmlFor = 'guess-input';
     guessInput.id = 'guess-input';
 
-    guessForm.append(guessLabel, guessInput, submitButton, guessError);
+    const guessActions = createElement('div', 'guess-form__actions');
+    guessActions.append(submitButton, giveUpButton);
+
+    guessForm.append(guessLabel, guessInput, guessActions, guessError);
 
     submitButton.disabled = true;
 
@@ -225,6 +234,22 @@ export function mountApp(root: HTMLDivElement): void {
       renderPlayingState(gameState);
     });
 
+    giveUpButton.addEventListener('click', () => {
+      if (gameState === null || gameState.status !== 'playing') {
+        return;
+      }
+
+      if (!window.confirm('Are you sure you want to give up?')) {
+        return;
+      }
+
+      const secret = gameState.secret;
+
+      gameState = abandonGame({ state: gameState });
+
+      renderLostState(gameState, secret);
+    });
+
     gameSection.replaceChildren(gameTitle, settingsInfo, gameMessage, guessForm, historySection);
   }
 
@@ -234,6 +259,63 @@ export function mountApp(root: HTMLDivElement): void {
 
     const gameTitle = createElement('h2', 'game__title');
     gameTitle.textContent = 'You got it! 🎉';
+
+    const secretMessage = createElement('p', 'game__message');
+    secretMessage.textContent = `The secret number was ${secret}.`;
+
+    const attemptsInfo = createElement('p', 'game__result-info');
+    attemptsInfo.textContent = `Attempts: ${result.attempts.length}`;
+
+    const durationInfo = createElement('p', 'game__result-info');
+    durationInfo.textContent = `Time: ${formatDuration(result.duration)}`;
+
+    const historySection = renderHistory(result.attempts);
+
+    const newGameButton = createElement('button', 'game__new-game');
+    newGameButton.type = 'button';
+    newGameButton.textContent = 'Start New Game';
+
+    newGameButton.addEventListener('click', () => {
+      const setupState = resetGame({ state });
+
+      selectedLength = setupState.settings.length;
+      selectedBase = setupState.settings.base;
+
+      const lengthInputs =
+        lengthFieldset.querySelectorAll<HTMLInputElement>('input[name="length"]');
+
+      for (const input of lengthInputs) {
+        input.checked = Number(input.value) === selectedLength;
+      }
+
+      const baseInputs = baseFieldset.querySelectorAll<HTMLInputElement>('input[name="base"]');
+
+      for (const input of baseInputs) {
+        input.checked = Number(input.value) === selectedBase;
+      }
+
+      gameState = null;
+
+      gameSection.replaceChildren(setupTitle, setupStatus, setupForm);
+
+      updateSetupForm();
+    });
+
+    gameSection.replaceChildren(
+      gameTitle,
+      secretMessage,
+      attemptsInfo,
+      durationInfo,
+      historySection,
+      newGameButton,
+    );
+  }
+
+  function renderLostState(state: LostState, secret: string): void {
+    const result = state.result;
+
+    const gameTitle = createElement('h2', 'game__title');
+    gameTitle.textContent = 'Game OveYou gave up!';
 
     const secretMessage = createElement('p', 'game__message');
     secretMessage.textContent = `The secret number was ${secret}.`;
