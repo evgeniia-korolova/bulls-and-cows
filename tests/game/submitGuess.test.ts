@@ -24,6 +24,7 @@ describe('submitGuess', () => {
     const result = submitGuess({
       state: mockPlayingState,
       guess: '1234',
+      now: () => 6500,
     });
 
     expect(result).toEqual({
@@ -44,6 +45,7 @@ describe('submitGuess', () => {
       submitGuess({
         state: mockPlayingState,
         guess: '1123',
+        now: () => 6500,
       }),
     ).toThrow('Invalid guess');
   });
@@ -122,8 +124,56 @@ describe('submitGuess', () => {
     submitGuess({
       state,
       guess: '1234',
+      now: () => 6500,
     });
 
     expect(state).toEqual(mockPlayingState);
+  });
+
+  it('should not add a duplicate guess to history', () => {
+    const state: PlayingState = {
+      ...mockPlayingState,
+      history: [
+        {
+          guess: '1234',
+          bulls: 1,
+          cows: 2,
+        },
+      ],
+    };
+
+    const result = submitGuess({
+      state,
+      guess: '1234',
+      now: () => 6500,
+    });
+
+    expect(result).toEqual(state);
+  });
+
+  it('should treat hexadecimal guesses as duplicates regardless of case', () => {
+    const state: PlayingState = {
+      ...mockPlayingState,
+      settings: {
+        length: 4,
+        base: GAME_BASES.HEXADECIMAL,
+      },
+      secret: 'AB12',
+      history: [
+        {
+          guess: 'aB12',
+          bulls: 0,
+          cows: 0,
+        },
+      ],
+    };
+
+    const result = submitGuess({
+      state,
+      guess: 'AB12',
+      now: () => 6500,
+    });
+
+    expect(result).toEqual(state);
   });
 });
