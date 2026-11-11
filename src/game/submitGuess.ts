@@ -20,6 +20,16 @@ export function submitGuess(options: SubmitGuessOptions): PlayingState | WonStat
     ...evaluateGuess(state.secret, guess),
   };
 
+  const normalizedGuess = guess.toLowerCase();
+
+  const isDuplicate = state.history.some(
+    (attempt) => attempt.guess.toLowerCase() === normalizedGuess,
+  );
+
+  if (isDuplicate) {
+    return state;
+  }
+
   const attempts = [...state.history, attempt];
 
   const completedAt = options.now?.() ?? Date.now();
