@@ -2,7 +2,7 @@ import { LostState, PlayingState } from './types';
 
 interface AbandonGameOptions {
   readonly state: PlayingState;
-  readonly now?: () => number;
+  readonly now: () => number;
 }
 
 export function abandonGame(options: AbandonGameOptions): LostState {

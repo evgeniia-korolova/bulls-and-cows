@@ -3,7 +3,7 @@ import { PlayingState, SetupState } from './types';
 
 interface StartGameOptions {
   readonly random?: () => number;
-  readonly now?: () => number;
+  readonly now: () => number;
 }
 
 export function startGame(state: SetupState, options?: StartGameOptions): PlayingState {

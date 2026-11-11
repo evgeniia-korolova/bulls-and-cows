@@ -5,7 +5,7 @@ import type { PlayingState, WonState } from './types';
 interface SubmitGuessOptions {
   readonly state: PlayingState;
   readonly guess: string;
-  readonly now?: () => number;
+  readonly now: () => number;
 }
 
 export function submitGuess(options: SubmitGuessOptions): PlayingState | WonState {

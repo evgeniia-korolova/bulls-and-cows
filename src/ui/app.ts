@@ -243,6 +243,7 @@ export function mountApp(root: HTMLDivElement): void {
       gameState = submitGuess({
         state: gameState,
         guess,
+        now: Date.now,
       });
 
       if (gameState.status === 'won') {
@@ -266,7 +267,7 @@ export function mountApp(root: HTMLDivElement): void {
 
       const secret = gameState.secret;
 
-      gameState = abandonGame({ state: gameState });
+      gameState = abandonGame({ state: gameState, now: Date.now });
 
       saveGameResult(gameState.result);
       renderLeaderboard();
@@ -542,7 +543,7 @@ export function mountApp(root: HTMLDivElement): void {
       },
     };
 
-    gameState = startGame(setupState);
+    gameState = startGame(setupState, { now: Date.now });
     renderPlayingState(gameState);
   });
 
