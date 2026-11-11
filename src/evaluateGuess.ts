@@ -4,8 +4,8 @@ interface GuessResult {
 }
 
 export function evaluateGuess(secret: string, guess: string): GuessResult {
-  const secretArr = [...secret];
-  const guessArr = [...guess];
+  const secretArr = [...secret.toLowerCase()];
+  const guessArr = [...guess.toLowerCase()];
 
   const bullsCount = secretArr.filter((item, index) => item === guessArr[index]).length;
 
