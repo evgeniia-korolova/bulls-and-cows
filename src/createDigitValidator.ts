@@ -3,3 +3,7 @@ export function createDigitValidator(base: number): (char: string) => boolean {
 
   return (char) => digitsArr.includes(char.toLowerCase());
 }
+
+export function filterValidDigits(): string {
+  throw new Error('Not Implemented');
+}

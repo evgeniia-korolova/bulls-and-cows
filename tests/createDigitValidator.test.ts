@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createDigitValidator } from '../src/createDigitValidator';
+import { createDigitValidator, filterValidDigits } from '../src/createDigitValidator';
 
 describe('createDigitValidator', () => {
   it('should be defined', () => {
@@ -71,5 +71,35 @@ describe('createDigitValidator', () => {
     expect(isValidDigit('a')).toBe(true);
     expect(isValidDigit('F')).toBe(true);
     expect(isValidDigit('f')).toBe(true);
+  });
+});
+
+describe('filterValidDigits', () => {
+  it('should remove invalid binary digits', () => {
+    expect(filterValidDigits('1023', 2)).toBe('10');
+  });
+
+  it('should remove invalid decimal digits', () => {
+    expect(filterValidDigits('12A34', 10)).toBe('1234');
+  });
+
+  it('should remove invalid hexadecimal digits', () => {
+    expect(filterValidDigits('1G2A', 16)).toBe('12A');
+  });
+
+  it('should preserve hexadecimal digits regardless of case', () => {
+    expect(filterValidDigits('aAfF', 16)).toBe('aAfF');
+  });
+
+  it('should preserve duplicate valid digits', () => {
+    expect(filterValidDigits('1122', 10)).toBe('1122');
+  });
+
+  it('should return an empty string when all characters are invalid', () => {
+    expect(filterValidDigits('XYZ', 16)).toBe('');
+  });
+
+  it('should return an empty string for empty input', () => {
+    expect(filterValidDigits('', 10)).toBe('');
   });
 });
