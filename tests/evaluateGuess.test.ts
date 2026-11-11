@@ -53,4 +53,16 @@ describe('evaluateGuess', () => {
 
     expect(result).toEqual({ bulls: 1, cows: 0 });
   });
+
+  it('should count hexadecimal digits as bulls regardless of case', () => {
+    const result = evaluateGuess('aF01', 'Af01');
+
+    expect(result).toEqual({ bulls: 4, cows: 0 });
+  });
+
+  it('should count hexadecimal digits as cows regardless of case', () => {
+    const result = evaluateGuess('aB12', '2bA3');
+
+    expect(result).toEqual({ bulls: 1, cows: 2 });
+  });
 });
