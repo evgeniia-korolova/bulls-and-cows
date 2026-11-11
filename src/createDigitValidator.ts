@@ -4,6 +4,8 @@ export function createDigitValidator(base: number): (char: string) => boolean {
   return (char) => digitsArr.includes(char.toLowerCase());
 }
 
-export function filterValidDigits(): string {
-  throw new Error('Not Implemented');
+export function filterValidDigits(value: string, base: number): string {
+  const isValidDigit = createDigitValidator(base);
+
+  return Array.from(value).filter(isValidDigit).join('');
 }

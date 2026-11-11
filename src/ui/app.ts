@@ -1,4 +1,5 @@
 import { countPossibleSecrets } from '../countPossibleSecrets';
+import { filterValidDigits } from '../createDigitValidator';
 import { abandonGame } from '../game/abandonGame';
 import { GAME_BASES, GameBase } from '../game/constants';
 import { getLeaderboard } from '../game/getLeaderboard';
@@ -199,6 +200,7 @@ export function mountApp(root: HTMLDivElement): void {
     guessForm.append(guessLabel, guessInput, guessActions, guessError);
 
     guessInput.addEventListener('input', () => {
+      guessInput.value = filterValidDigits(guessInput.value, state.settings.base);
       const guess = guessInput.value;
 
       if (guess.length === 0) {
